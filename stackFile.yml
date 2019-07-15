@@ -1,0 +1,81 @@
+version: '1.0'
+services:
+  - name: db
+    type: mariadb
+    version: 10.4
+    configuration: StandAlone
+    database: prestashop
+    username: prestashop
+    # Ask password on create
+    userPassword: null
+    password: null
+    ports:
+      - 3306
+    remoteAccess: false
+    comments:
+      username: Database will be created with the same name
+    deployTo:
+      - prestashop
+
+  - name: prestashop
+    type: docker
+    image: prestashop/prestashop
+    version: 1.7-7.2-apache
+    ports:
+      - 8080
+    env:
+      ADMIN_MAIL: null
+      ADMIN_PASSWD: null
+      PS_FOLDER_ADMIN: null
+      PS_FOLDER_INSTALL: "{{=randomString(16)}}"
+      PS_DOMAIN: "{{=service('prestashop').getNginxDomain()}}"
+      DB_SERVER: "{{=service('db').getMasterAlias()}}"
+      DB_USER: root
+      DB_PASSWD: "{{=service('db').get('password')}}"
+      DB_NAME: "{{=service('db').get('database')}}"
+      PS_INSTALL_AUTO: 1
+      PS_ENABLE_SSL: 0
+    volumes:
+      - directory: /var/www/html/img
+      - directory: /var/www/html/vendor
+    comments:
+      env:
+        ADMIN_MAIL: Email for Prestashop administrator
+        ADMIN_PASSWD: Password for Prestashop administrator
+        PS_FOLDER_ADMIN: Change the name of the admin folder (this will be your URL for login to administrator panel). 
+        PS_FOLDER_INSTALL: The install folder will be renamed to random 16 symbols. Please, delete this folder if you don't need to install Prestashop again.
+    deployTo:
+      - prestashop
+
+  - name: pma
+    type: docker
+    image: phpmyadmin/phpmyadmin
+    version: latest
+    ports:
+      - 80
+    remoteAccess: false
+    env:
+      PMA_HOST: "{{=service('db').getMasterAlias()}}"
+      PMA_PORT: "{{=service('db').getMainPort()}}"
+    deployTo:
+      - prestashop
+
+  - name: web
+    type: nginx
+    version: 1.15
+    ports:
+      - 80
+      - 443
+    remoteAccess: true
+    serviceFiles:
+      - name: prestashop
+        src: ./configs/prestashop.conf
+      - name: pma
+    deployTo:
+      - prestashop
+
+hosts:
+  - name: prestashop
+    requirements:
+      cores: 1
+      memory: 1
