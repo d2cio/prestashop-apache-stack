@@ -20,7 +20,7 @@ services:
   - name: prestashop
     type: docker
     image: prestashop/prestashop
-    version: 1.7-7.2-apache
+    version: 1.7-7.3-apache
     ports:
       - 8080
     env:
@@ -42,7 +42,7 @@ services:
       env:
         ADMIN_MAIL: Email for Prestashop administrator
         ADMIN_PASSWD: Password for Prestashop administrator
-        PS_FOLDER_ADMIN: Change the name of the admin folder (this will be your URL for login to administrator panel). 
+        PS_FOLDER_ADMIN: Change the name of the admin folder (this will be your URL for login to administrator panel).
         PS_FOLDER_INSTALL: The install folder will be renamed to random 16 symbols. Please, delete this folder if you don't need to install Prestashop again.
     deployTo:
       - prestashop
@@ -62,7 +62,7 @@ services:
 
   - name: web
     type: nginx
-    version: 1.15
+    version: 1.17
     ports:
       - 80
       - 443
